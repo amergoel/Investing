@@ -196,6 +196,18 @@ def _position_series(df_in: pd.DataFrame, selected_strategy: str) -> pd.Series:
     scale = (0.15 / realized_vol).clip(0, 2).fillna(0)
     return base * scale
 
+def _bullish_label(x: float) -> str:
+    if pd.isna(x):
+        return ""
+    if x ==0:
+        return "Neutral"
+    elif x < 0.33:
+        return "Mildly bullish"
+    elif x < 0.66:
+        return "Bullish"
+    else:
+        return "Very bullish"
+
 # Build per-ticker inputs + find latest common date
 inputs = {}
 index_sets = []
@@ -229,6 +241,9 @@ else:
     pos_df = pd.DataFrame.from_dict(positions, orient="index", columns=["Current Position"])
     pos_df.index.name = "Asset"
 
+    # ✅ New interpretation column
+    pos_df["Interpretation"] = pos_df["Current Position"].apply(_bullish_label)
+
     if as_of is not None:
         st.caption(f"As of {pd.to_datetime(as_of).date()} (latest common date across assets)")
     else:
@@ -238,6 +253,21 @@ else:
         pos_df.sort_index().style.format({"Current Position": "{:.4f}"}),
         use_container_width=True
     )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ============================================================
 # Backtesting Section (Notebook-style plots)
